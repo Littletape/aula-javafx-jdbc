@@ -1,18 +1,27 @@
 package gui;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
 import application.Main;
+import gui.util.Alerts;
+import gui.util.Utils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.Pane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import model.entities.Department;
 import model.services.DepartmentService;
@@ -35,8 +44,9 @@ public class DepartmentListController implements Initializable {
 	private ObservableList<Department> obsList;
 
 	@FXML
-	public void onBtNewAction() {
-		System.out.println("onBtNewAction");
+	public void onBtNewAction(ActionEvent event) {
+		Stage parentStage = Utils.currentStage(event); // recebe o Palco pai
+		createDialogForm("/gui/DepartmentForm.fxml", parentStage); // executa o modal
 	}
 
 	public void seTDepartmentService(DepartmentService service) {
@@ -67,9 +77,28 @@ public class DepartmentListController implements Initializable {
 		// carrega todos os itens da lista de departamento dentro da ObservableList
 		List<Department> list = service.findAll();
 		obsList = FXCollections.observableArrayList(list);
-		
-		// carrega os itens da ObservableList dentro do <TableView> 
+
+		// carrega os itens da ObservableList dentro do <TableView>
 		tableViewDepartment.setItems(obsList);
+	}
+
+	// modal
+	private void createDialogForm(String absoluteName, Stage parentStage) {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName)); // Carrega a url
+			Pane pane = loader.load();
+
+			Stage dialogStage = new Stage(); // cria um novo palco sobrepondo o anterior
+			dialogStage.setTitle("Enter department data"); // titulo do palco modal
+			dialogStage.setScene(new Scene(pane)); // cria uma nova cena no palco modal
+			dialogStage.setResizable(false); // desabilita redimencionamento
+			dialogStage.initOwner(parentStage); // informa o Palco que o modal ira sobrepor
+			dialogStage.initModality(Modality.WINDOW_MODAL); // informa que de que tipo será este modal
+			dialogStage.showAndWait(); // exibe o modal e colaca as outras cenas em espera
+
+		} catch (IOException e) {
+			Alerts.showAlert("IOException", "Error loading view", e.getMessage(), AlertType.ERROR);
+		}
 	}
 
 }
