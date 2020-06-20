@@ -3,9 +3,11 @@ package gui;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import application.Main;
+import db.DbIntegrityException;
 import gui.listeners.DataChangeListener;
 import gui.util.Alerts;
 import gui.util.Utils;
@@ -19,6 +21,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -43,6 +46,9 @@ public class DepartmentListController implements Initializable, DataChangeListen
 
 	@FXML
 	private TableColumn<Department, Department> tableColumnEDIT;
+
+	@FXML
+	private TableColumn<Department, Department> tableColumnREMOVE;
 
 	@FXML
 	private Button btNew;
@@ -87,7 +93,8 @@ public class DepartmentListController implements Initializable, DataChangeListen
 
 		tableViewDepartment.setItems(obsList); // carrega os itens da ObservableList dentro do <TableView>
 
-		initEditButtons(); // chama o metodo de inicialização do botão 'EDIT'
+		initEditButtons(); // chama o metodo de inicialização do botão 'Edit'
+		initRemoveButtons(); // chama o metodo de inicialização do botão 'Remove'
 	}
 
 	// modal do DepartmentForm
@@ -122,12 +129,12 @@ public class DepartmentListController implements Initializable, DataChangeListen
 		updateTableView();
 	}
 
-	// metodo para inicializar os botões 'EDIT' em cada linha da tabela
+	// metodo para inicializar os botões 'Edit' em cada linha da tabela
 	private void initEditButtons() {
 		tableColumnEDIT.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue()));
 
 		tableColumnEDIT.setCellFactory(param -> new TableCell<Department, Department>() {
-			private final Button button = new Button("EDIT");
+			private final Button button = new Button("Edit");
 
 			@Override
 			protected void updateItem(Department obj, boolean empty) {
@@ -145,5 +152,42 @@ public class DepartmentListController implements Initializable, DataChangeListen
 			}
 
 		});
+	}
+
+	// metodo para inicializar os botões 'Remove' em cada linha da tabela
+	private void initRemoveButtons() {
+		tableColumnREMOVE.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue()));
+
+		tableColumnREMOVE.setCellFactory(param -> new TableCell<Department, Department>() {
+			private final Button button = new Button("Remove");
+
+			@Override
+			protected void updateItem(Department obj, boolean empty) {
+				super.updateItem(obj, empty);
+				if (obj == null) {
+					setGraphic(null);
+					return;
+				}
+				setGraphic(button);
+				button.setOnAction(event -> removeEntity(obj));
+			}
+		});
+	}
+
+	// exibe o alert de confirmação ao clicar no botão delete
+	private void removeEntity(Department obj) {
+		Optional<ButtonType> result = Alerts.showConfirmation("Confirmation", "Are you sure to delete?");
+		
+		if (result.get() == ButtonType.OK) {
+			if (service == null) {
+				throw new IllegalStateException("Service was null");
+			}
+			try {
+				service.remove(obj);
+				updateTableView();
+			} catch (DbIntegrityException e){
+				Alerts.showAlert("Error removing object", null, e.getMessage(), AlertType.ERROR);
+			}
+		}
 	}
 }
