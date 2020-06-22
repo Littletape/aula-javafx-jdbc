@@ -1,6 +1,7 @@
 package gui;
 
 import java.net.URL;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -38,6 +39,15 @@ public class SellerListController implements Initializable, DataChangeListener {
 
 	@FXML
 	private TableColumn<Seller, String> tableColumName;
+	
+	@FXML
+	private TableColumn<Seller, String> tableColumEMail;
+	
+	@FXML
+	private TableColumn<Seller, Date> tableColumBirthDate;
+	
+	@FXML
+	private TableColumn<Seller, Double> tableColumBaseSalary;
 
 	@FXML
 	private TableColumn<Seller, Seller> tableColumnEDIT;
@@ -67,9 +77,14 @@ public class SellerListController implements Initializable, DataChangeListener {
 	}
 
 	private void initializeNodes() {
-		// prepara as celulas da tablela para receber seus respectivos valores.
+		// prepara as celulas da tabela para receber seus respectivos valores.
 		tableColumId.setCellValueFactory(new PropertyValueFactory<>("id"));
 		tableColumName.setCellValueFactory(new PropertyValueFactory<>("name"));
+		tableColumEMail.setCellValueFactory(new PropertyValueFactory<>("email"));
+		tableColumBirthDate.setCellValueFactory(new PropertyValueFactory<>("birthDate"));
+		Utils.formatTableColumnDate(tableColumBirthDate, "dd/MM/yyyy"); // formatação do tableColumBirthDate
+		tableColumBaseSalary.setCellValueFactory(new PropertyValueFactory<>("baseSalary"));
+		Utils.formatTableColumnDouble(tableColumBaseSalary, 2); // formatação do tableColumBaseSalary
 
 		// ajusta o tamanho da tabela para o tamanho da janela
 		Stage stage = (Stage) Main.getMainScene().getWindow();
@@ -82,7 +97,7 @@ public class SellerListController implements Initializable, DataChangeListener {
 			throw new IllegalStateException("Service was null");
 		}
 
-		// carrega todos os itens da lista de departamento dentro da ObservableList
+		// carrega todos os itens da lista de Vendedor dentro da ObservableList
 		List<Seller> list = service.findAll();
 		obsList = FXCollections.observableArrayList(list);
 
