@@ -1,9 +1,11 @@
 package gui;
 
 import java.net.URL;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -107,12 +109,10 @@ public class SellerFormController implements Initializable {
 		try {
 			entity = getFormData();
 			service.saveOrUpdate(entity);
-			notifyDataChangeListeners(); // notifica para o observer evento para atualizar tela
+			notifyDataChangeListeners();
 			Utils.currentStage(event).close();
-
 		} catch (ValidationException e) {
-			setErrorMessages(e.getErrors()); // implementacão do metodo para exibir msg erros no <label>
-
+			setErrorMessages(e.getErrors());
 		} catch (DbException e) {
 			Alerts.showAlert("Error saving object", null, e.getMessage(), AlertType.ERROR);
 		}
@@ -125,6 +125,7 @@ public class SellerFormController implements Initializable {
 		}
 	}
 
+	// metodo que pega os dados do formulario e retorna um objeto
 	private Seller getFormData() {
 		Seller obj = new Seller();
 
@@ -137,8 +138,35 @@ public class SellerFormController implements Initializable {
 		if (txtName.getText() == null || txtName.getText().trim().equals("")) {
 			exception.addErrors("name", "Fiel can't be empty");
 		}
-
+		// pega so dados do txtName para inserir no objeto
 		obj.setName(txtName.getText());
+
+		// indica possivel erro para o txtEmail
+		if (txtEmail.getText() == null || txtEmail.getText().trim().equals("")) {
+			exception.addErrors("email", "Fiel can't be empty");
+		}
+		// pega so dados do txtEmail para inserir no objeto
+		obj.setEmail(txtEmail.getText());
+
+		// indica possivel erro para o dpBirthDate
+		if (dpBirthDate.getValue() == null) {
+			exception.addErrors("birthDate", "Fiel can't be empty");
+		} else {
+			// recebe o dpBirthDate como se iniciado no horario 00:00:00
+			Instant instant = Instant.from(dpBirthDate.getValue().atStartOfDay(ZoneId.systemDefault()));
+			// pega so dados do instant para inserir no objeto
+			obj.setBirthDate(Date.from(instant));
+		}
+
+		// indica possivel erro para o txtBaseSalary
+		if (txtBaseSalary.getText() == null || txtBaseSalary.getText().trim().equals("")) {
+			exception.addErrors("baseSalary", "Fiel can't be empty");
+		}
+		// pega so dados do txtBaseSalary para inserir no objeto
+		obj.setBaseSalary(Utils.tryParseToDouble(txtBaseSalary.getText()));
+		
+		// pega so dados do comboBoxDepartment para inserir no objeto
+		obj.setDepartment(comboBoxDepartment.getValue());
 
 		// captura todos os possiveis erros ocorridos
 		if (exception.getErrors().size() > 0) {
@@ -189,7 +217,7 @@ public class SellerFormController implements Initializable {
 		} else {
 			comboBoxDepartment.setValue(entity.getDepartment());
 		}
-		
+
 	}
 
 	// metodo para inserir dados na ObservableList<Department> do <comboBox>
@@ -205,10 +233,11 @@ public class SellerFormController implements Initializable {
 	// metodo para exibir msg de erros em seus repectivos <label>
 	private void setErrorMessages(Map<String, String> errors) {
 		Set<String> fields = errors.keySet();
-
-		if (fields.contains("name")) {
-			labelErrorName.setText(errors.get("name"));
-		}
+		
+		labelErrorName.setText((fields.contains("name")) ? errors.get("name") : "");
+		labelErrorEmail.setText((fields.contains("email")) ? errors.get("email") : "");
+		labelErrorBirthDate.setText((fields.contains("birthDate")) ? errors.get("birthDate") : "");
+		labelErrorBaseSalary.setText((fields.contains("baseSalary")) ? errors.get("baseSalary") : "");
 	}
 
 	// inicializa o combobox

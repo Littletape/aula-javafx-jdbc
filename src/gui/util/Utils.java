@@ -20,7 +20,8 @@ public class Utils {
 	public static Stage currentStage(ActionEvent event) {
 		return (Stage) ((Node) event.getSource()).getScene().getWindow();
 	}
-
+	
+	// pega string e converte para integer com tramento de erro
 	public static Integer tryParseToInt(String str) {
 		try {
 			return Integer.parseInt(str);
@@ -28,6 +29,15 @@ public class Utils {
 			return null;
 		}
 
+	}
+	
+	// pega string e converte para double com tramento de erro
+	public static Double tryParseToDouble(String str) {
+		try {
+			return Double.parseDouble(str);
+		} catch (NumberFormatException e) {
+			return null;
+		}
 	}
 
 	// formatação de coluna que recebe o tipo data
